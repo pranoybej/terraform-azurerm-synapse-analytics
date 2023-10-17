@@ -94,31 +94,31 @@ provider "azurerm" {
   features {}
 }
 
-#Provision an Azure Synapse Workspace with managed & self-hosted integration runtimes
-#The example also creates an Apache Spark Pool
-#The example also shows syanpse workspace role assignment
-#This example also enables synapse workspace audit logging, vulnerabiltiy assessment & alert
-module "synapse01" {
-  source                    = "./Synapse Workspace"
+#Provision an Azure Synapse Workspace with Spark Pool, SQL Pool and Integration Runtimes
+#This example also showcase Firewall rules, Role-based-access-control, Audit Logging & Vulnerability Assessment
+
+
+module "examplesyn01" {
+  source                    = "../../"
   create_resource_group     = true
-  resource_group_name       = "pb-syn-rg"
+  resource_group_name       = "example-syn-rg"
   location                  = "centralindia"
   create_storage_account    = true
-  storage_account_name      = "pbstor6754"
+  storage_account_name      = "examplestor6754"
   data_lake_filesystem_name = "synfile01"
-  sql_admin_username        = "pbsqadm1n"
-  sql_admin_password        = "p124fgd3edg4!#w26thg!"
-  synapse_workspace_name    = "pb-synapse-01"
-  managed_rg_name           = "pb-synman-rg"
+  sql_admin_username        = var.sql_admin_username
+  sql_admin_password        = var.sql_admin_password
+  synapse_workspace_name    = "example-synapse-01"
+  managed_rg_name           = "example-synman-rg"
   identity_type             = "SystemAssigned"
   aad_admin = {
-    login     = "pranoy.bej@cogcis.onmicrosoft.com"
-    object_id = "a9de337a-9fc9-4011-bb6d-01c6845136af"
-    tenant_id = "188285f7-8f1e-4c0d-a0bc-797e3e38c5b3"
+    login     = "user1@example.onmicrosoft.com"
+    object_id = var.object_id
+    tenant_id = var.tenant_id
   }
 
   create_spark_pool             = true
-  spark_pool_name               = "pbspk01"
+  spark_pool_name               = "examplespk01"
   enable_spark_dynamic_executor = true
 
   spark_autoscale_setting = {
@@ -127,8 +127,8 @@ module "synapse01" {
   }
 
   create_sql_pool = true
-  sql_pool_name   = "pbsql01"
-  sql_pool_sku    = "DW300c"
+  sql_pool_name   = "examplesql01"
+  sql_pool_sku    = "DW100c"
   enable_tde      = true
 
   synapse_firewall_rules = [
@@ -143,7 +143,7 @@ module "synapse01" {
       end_ip   = "20.10.0.9"
     },
     {
-      name     = "pbrule01"
+      name     = "fwrule03"
       start_ip = "20.204.5.182"
       end_ip   = "20.204.5.182"
     }
@@ -152,17 +152,17 @@ module "synapse01" {
   synapse_rbac_role_assignment = [
     {
       role_name    = "Synapse Artifact Publisher"
-      principal_id = "a9de337a-9fc9-4011-bb6d-01c6845136af"
+      principal_id = var.principal_id
     },
     {
       role_name    = "Synapse Credential User"
-      principal_id = "a9de337a-9fc9-4011-bb6d-01c6845136af"
+      principal_id = var.principal_id
     }
   ]
 
   synapse_ir = [
     {
-      name             = "pb-ir-01"
+      name             = "auto-ir-01"
       compute_type     = "MemoryOptimized"
       core_count       = "16"
       description      = "Memory Optimized Syanpse IR."
@@ -172,10 +172,10 @@ module "synapse01" {
 
   synapse_managed_ir = [
     {
-      name = "pb-sh-ir-01"
+      name = "sh-ir-01"
     },
     {
-      name = "pb-sh-ir-02"
+      name = "sh-ir-02"
     }
   ]
 
@@ -189,7 +189,8 @@ module "synapse01" {
 
   tags = {
     Application = "Synapse Workspace"
-    Owner       = "Terraform SWAT"
+    Type        = "PaaS"
+    Owner       = "Pranoy Bej"
 
   }
 }
